@@ -1,37 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import CreatePage from "./pages/createPage";
-import NoteDetailPage from "./pages/NoteDetailPage";
-// Remove EditPage import
+import { Route, Routes } from "react-router";
 
-function App() {
+import HomePage from "./pages/HomePage";
+import CreatePage from "./pages/CreatePage";
+import NoteDetailPage from "./pages/NoteDetailPage";
+
+const App = () => {
   return (
-   
+    <div className="relative h-full w-full">
+      <div className="absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_60%,#00FF9D40_100%)]" />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/create" element={<CreatePage />} />
         <Route path="/note/:id" element={<NoteDetailPage />} />
-        <Route path="*" element={<NotFoundPage />} />
       </Routes>
-  
-  );
-}
-
-const NotFoundPage = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 to-purple-900 text-white flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
-        <p className="text-gray-300 mb-6">The page you're looking for doesn't exist.</p>
-        <a 
-          href="/" 
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-        >
-          Go Back Home
-        </a>
-      </div>
     </div>
   );
 };
-
 export default App;
