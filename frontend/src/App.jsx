@@ -1,8 +1,8 @@
 import { Route, Routes } from "react-router";
-
 import HomePage from "./pages/HomePage";
 import CreatePage from "./pages/createPage";
 import NoteDetailPage from "./pages/NoteDetailPage";
+import EditNotePage from "./pages/EditNotePage"; // You'll need to create this
 
 const App = () => {
   return (
@@ -12,6 +12,7 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/create" element={<CreatePage />} />
         <Route path="/note/:id" element={<NoteDetailPage />} />
+        <Route path="/edit-note/:id" element={<EditNotePage />} /> {/* Add this route */}
       </Routes>
     </div>
   );
