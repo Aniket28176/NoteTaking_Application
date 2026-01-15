@@ -1,101 +1,155 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import api from '../axios';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeftIcon,
+  FileTextIcon,
+  PenLineIcon,
+  SaveIcon,
+  XIcon,
+} from "lucide-react";
+import api from "../axios";
+import toast from "react-hot-toast";
 
 const EditNotePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [note, setNote] = useState({
-    title: '',
-    content: ''
+    title: "",
+    content: "",
   });
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchNote = async () => {
       try {
-        const response = await api.get(`/notes/${id}`);
-        setNote(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching note:', error);
+        const res = await api.get(`/notes/${id}`);
+        setNote(res.data);
+      } catch {
+        toast.error("Failed to fetch note");
+        navigate("/");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchNote();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!note.title.trim() || !note.content.trim()) {
+      toast.error("Title and content are required");
+      return;
+    }
+
+    setSaving(true);
     try {
       await api.put(`/notes/${id}`, note);
-      navigate('/'); // Redirect to home after successful update
-    } catch (error) {
-      console.error('Error updating note:', error);
+      toast.success("Note updated successfully");
+      navigate("/");
+    } catch {
+      toast.error("Error updating note");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleChange = (e) => {
-    setNote({
-      ...note,
-      [e.target.name]: e.target.value
-    });
+    setNote({ ...note, [e.target.name]: e.target.value });
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-base-200">
+        <span className="loading loading-spinner loading-lg text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800">Edit Note</h1>
-        
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={note.title}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            required
-          />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-base-200 to-secondary/5 flex items-center justify-center px-4">
+      <div className="w-full max-w-2xl">
 
-        <div className="mb-4">
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-            Content
-          </label>
-          <textarea
-            id="content"
-            name="content"
-            value={note.content}
-            onChange={handleChange}
-            rows="6"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            required
-          />
-        </div>
+        {/* Back */}
+        <button
+          onClick={() => navigate("/")}
+          className="btn btn-ghost mb-6 gap-2"
+        >
+          <ArrowLeftIcon className="size-5" />
+          Back
+        </button>
 
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors"
-          >
-            Update Note
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors"
-          >
-            Cancel
-          </button>
+        {/* Card */}
+        <div className="card bg-base-100 shadow-2xl border border-base-300">
+          <div className="card-body p-8 space-y-6">
+            <h1 className="text-3xl font-bold text-center">
+              ✏️ Edit Note
+            </h1>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+
+              {/* Title */}
+              <div className="relative">
+                <FileTextIcon className="absolute left-3 top-3 size-5 text-base-content/40" />
+                <input
+                  type="text"
+                  name="title"
+                  value={note.title}
+                  onChange={handleChange}
+                  placeholder="Note title"
+                  className="input input-bordered w-full pl-10 text-lg font-semibold"
+                />
+              </div>
+
+              {/* Content */}
+              <div className="relative">
+                <PenLineIcon className="absolute left-3 top-3 size-5 text-base-content/40" />
+                <textarea
+                  name="content"
+                  value={note.content}
+                  onChange={handleChange}
+                  placeholder="Edit your note..."
+                  className="textarea textarea-bordered w-full h-56 pl-10 resize-none"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="btn btn-primary flex-1 gap-2"
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <span className="loading loading-spinner"></span>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <SaveIcon className="size-5" />
+                      Update Note
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="btn btn-outline flex-1 gap-2"
+                >
+                  <XIcon className="size-5" />
+                  Cancel
+                </button>
+              </div>
+
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
