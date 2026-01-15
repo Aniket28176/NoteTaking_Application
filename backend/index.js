@@ -9,32 +9,25 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-const __dirname = path.resolve();
 
-const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  "https://note-taking-application-zeta.vercel.app" // vercel
-];
-
-// CORS
-if (process.env.NODE_ENV !== "production") {
-  app.use(cors({ origin: "http://localhost:5173" }));
-} else {
-  app.use(cors({origin: "*"}));
-}
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.options("*", cors());
+
 app.use(express.json());
 
-// Routes
 app.use("/api/notes", notesRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-
-// Start server
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
