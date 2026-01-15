@@ -20,13 +20,7 @@ const allowedOrigins = [
 if (process.env.NODE_ENV !== "production") {
   app.use(cors({ origin: "http://localhost:5173" }));
 } else {
-  app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+  app.use(cors({origin: "*"}));
 }
 
 app.options("*", cors());
