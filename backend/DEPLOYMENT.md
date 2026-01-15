@@ -7,7 +7,7 @@
 
 ## Environment Setup
 
-1. Create a `.env` file in the backend directory:
+Your `.env` file should contain:
 ```bash
 mongo_url="your_mongodb_connection_string"
 PORT=5001
@@ -15,7 +15,11 @@ NODE_ENV=production
 FRONTEND_URL="your_frontend_url"
 ```
 
-2. Use `.env.example` as a template for required variables
+Current configuration:
+- **mongo_url**: MongoDB Atlas connection string
+- **PORT**: Server port (default: 5001)
+- **NODE_ENV**: Environment mode (development/production)
+- **FRONTEND_URL**: Frontend URL for CORS configuration
 
 ## Local Testing
 
