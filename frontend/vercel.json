@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "env": [
+    {
+      "key": "VITE_API_URL",
+      "value": "@mongodb_connection_string"
+    }
+  ]
+}

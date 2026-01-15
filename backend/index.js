@@ -4,13 +4,15 @@ import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 import path from "path";
 import cors from "cors";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 const NODE_ENV = process.env.NODE_ENV || "development";
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -22,7 +24,7 @@ app.use((req, res, next) => {
 const corsOptions = {
   origin: NODE_ENV === "production" 
     ? process.env.FRONTEND_URL || "http://localhost:3000"
-    : "http://localhost:5173",
+    : ["http://localhost:5173", "http://localhost:5175"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type"]
