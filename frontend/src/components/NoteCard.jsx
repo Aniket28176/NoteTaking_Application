@@ -1,43 +1,29 @@
 import { PenSquareIcon, Trash2Icon } from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import api from "../axios";
 import toast from "react-hot-toast";
 
 const NoteCard = ({ note, setNotes }) => {
-  const navigate = useNavigate();
-
   const handleDelete = async (e, id) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log("Delete clicked for note ID:", id); // Debug log
-    
+    e.preventDefault(); // get rid of the navigation behaviour
+
     if (!window.confirm("Are you sure you want to delete this note?")) return;
-    
+
     try {
-      console.log("Making API call to delete note..."); // Debug log
       await api.delete(`/notes/${id}`);
-      console.log("API call successful, updating state..."); // Debug log
-      
-      // Update the state to remove the deleted note
-      setNotes((prev) => {
-        const newNotes = prev.filter((note) => note._id !== id);
-        console.log("New notes:", newNotes); // Debug log
-        return newNotes;
-      });
-      
-      toast.success("Note deleted successfully!");
+      setNotes((prev) => prev.filter((note) => note._id !== id)); // get rid of the deleted one
+      toast.success("Note deleted successfully");
     } catch (error) {
-      console.log("Error in handleDelete:", error);
-      console.log("Error details:", error.response?.data); // More detailed error
+      console.log("Error in handleDelete", error);
       toast.error("Failed to delete note");
     }
   };
 
   return (
-    <div
-      onClick={() => navigate(`/note/${note._id}`)}
-      className="card bg-base-100 hover:shadow-lg transition-all duration-200 border-t-4 border-solid border-green-400 cursor-pointer"
+    <Link
+      to={`/note/${note._id}`}
+      className="card bg-base-100 hover:shadow-lg transition-all duration-200 
+      border-t-4 border-solid border-[#00FF9D]"
     >
       <div className="card-body">
         <h3 className="card-title text-base-content">{note.title}</h3>
@@ -47,24 +33,17 @@ const NoteCard = ({ note, setNotes }) => {
             {new Date(note.createdAt).toLocaleDateString()}
           </span>
           <div className="flex items-center gap-1">
-            <Link
-              to={`/edit-note/${note._id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="btn btn-ghost btn-xs"
-            >
-              <PenSquareIcon className="w-4 h-4" />
-            </Link>
+            <PenSquareIcon className="size-4" />
             <button
               className="btn btn-ghost btn-xs text-error"
               onClick={(e) => handleDelete(e, note._id)}
             >
-              <Trash2Icon className="w-4 h-4" />
+              <Trash2Icon className="size-4" />
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
-
 export default NoteCard;

@@ -1,103 +1,47 @@
 import express from "express";
-import noteRoutes from "./routes/notesRoutes.js";
-import { connectDB } from "./config/db.js";
+import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
-import cors from "cors";
-import { fileURLToPath } from "url";
+
+import notesRoutes from "./routes/notesRoutes.js";
+import { connectDB } from "./config/db.js";
+import rateLimiter from "./middleware/rateLimiter.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-const NODE_ENV = process.env.NODE_ENV || "development";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.resolve();
 
-// Logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
+// middleware
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: "http://localhost:5173",
+    })
+  );
+}
+app.use(express.json()); // this middleware will parse JSON bodies: req.body
+app.use(rateLimiter);
 
-// CORS configuration
-const corsOptions = {
-  origin: NODE_ENV === "production" 
-    ? process.env.FRONTEND_URL || "http://localhost:3000"
-    : ["http://localhost:5173", "http://localhost:5175"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type"]
-};
+// our simple custom middleware
+// app.use((req, res, next) => {
+//   console.log(`Req method is ${req.method} & Req URL is ${req.url}`);
+//   next();
+// });
 
-app.use(cors(corsOptions));
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use("/api/notes", notesRoutes);
 
-// API Routes
-app.use("/api/notes", noteRoutes);
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
-});
-
-// Serve frontend in production
-if (NODE_ENV === "production") {
-  const frontendPath = path.join(__dirname, "../frontend/dist");
-  app.use(express.static(frontendPath));
   app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
   });
 }
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error("Error:", err);
-  res.status(err.status || 500).json({
-    message: NODE_ENV === "production" ? "Internal Server Error" : err.message,
-    status: err.status || 500
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log("Server started on PORT:", PORT);
   });
 });
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
-
-// Start server
-const startServer = async () => {
-  try {
-    await connectDB();
-    console.log("✓ Database connected successfully");
-    
-    const server = app.listen(PORT, "0.0.0.0", () => {
-      console.log(`✓ Server running on ${NODE_ENV} mode`);
-      console.log(`✓ Server started at http://0.0.0.0:${PORT}`);
-    });
-
-    // Graceful shutdown
-    const shutdown = (signal) => {
-      console.log(`\n${signal} signal received: closing HTTP server`);
-      server.close(() => {
-        console.log("HTTP server closed");
-        process.exit(0);
-      });
-      
-      // Force shutdown after 10 seconds
-      setTimeout(() => {
-        console.error("Could not close connections in time, forcefully shutting down");
-        process.exit(1);
-      }, 10000);
-    };
-
-    process.on("SIGTERM", () => shutdown("SIGTERM"));
-    process.on("SIGINT", () => shutdown("SIGINT"));
-
-  } catch (error) {
-    console.error("✗ Failed to start server:", error.message);
-    process.exit(1);
-  }
-};
-
-startServer();

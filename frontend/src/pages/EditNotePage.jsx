@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate } from 'react-router';
+import api from '../axios';
 
 const EditNotePage = () => {
   const { id } = useParams();
@@ -14,7 +14,7 @@ const EditNotePage = () => {
   useEffect(() => {
     const fetchNote = async () => {
       try {
-        const response = await axios.get(`/api/notes/${id}`);
+        const response = await api.get(`/notes/${id}`);
         setNote(response.data);
         setLoading(false);
       } catch (error) {
@@ -29,7 +29,7 @@ const EditNotePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`/api/notes/${id}`, note);
+      await api.put(`/notes/${id}`, note);
       navigate('/'); // Redirect to home after successful update
     } catch (error) {
       console.error('Error updating note:', error);

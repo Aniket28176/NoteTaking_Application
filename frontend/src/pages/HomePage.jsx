@@ -1,37 +1,34 @@
-import Navbar from "../components/navbar";
-import { useState, useEffect } from "react";
-import NoteCard from "../components/NoteCard";
-import toast from "react-hot-toast";
+import { useState } from "react";
+import Navbar from "../components/Navbar";
+import RateLimitedUI from "../components/RateLimitedUI";
+import { useEffect } from "react";
 import api from "../axios";
+import toast from "react-hot-toast";
+import NoteCard from "../components/NoteCard";
+import NotesNotFound from "../components/NotesNotFound";
 
 const HomePage = () => {
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const res = await api.get("/notes"); // ✅ Correct: uses your custom axios instance
-        console.log("Notes data:", res.data);
-        
-        // Ensure notes is always an array
-        if (Array.isArray(res.data)) {
-          setNotes(res.data);
-        } else {
-          console.error("Expected array but got:", typeof res.data);
-          setNotes([]);
-          toast.error("Invalid data format from server");
-        }
+        const res = await api.get("/notes");
+        console.log(res.data);
+        setNotes(res.data);
+        setIsRateLimited(false);
       } catch (error) {
-        console.log("Error fetching notes:", error);
-        if (error.code === 'ERR_NETWORK') {
-          toast.error("Backend server not running. Start it with: cd backend && npm run dev");
+        console.log("Error fetching notes");
+        console.log(error.response);
+        if (error.response?.status === 429) {
+          setIsRateLimited(true);
         } else {
           toast.error("Failed to load notes");
         }
-        setNotes([]);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
@@ -39,36 +36,25 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-blue-950 text-white">
+    <div className="min-h-screen">
       <Navbar />
 
+      {isRateLimited && <RateLimitedUI />}
+
       <div className="max-w-7xl mx-auto p-4 mt-6">
-        {loading && (
-          <div className="text-center text-primary py-10">
-            Loading Notes...
-          </div>
-        )}
+        {loading && <div className="text-center text-primary py-10">Loading notes...</div>}
 
-        {!loading && notes.length > 0 && (
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {notes.length === 0 && !isRateLimited && <NotesNotFound />}
+
+        {notes.length > 0 && !isRateLimited && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {notes.map((note) => (
-              <NoteCard 
-                key={note._id} 
-                note={note} 
-                setNotes={setNotes} // ✅ Essential for delete functionality
-              />
+              <NoteCard key={note._id} note={note} setNotes={setNotes} />
             ))}
-          </div>
-        )}
-
-        {!loading && notes.length === 0 && (
-          <div className="text-center text-gray-400 py-10">
-            No notes found.
           </div>
         )}
       </div>
     </div>
   );
 };
-
 export default HomePage;
